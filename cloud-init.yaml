@@ -1,0 +1,14 @@
+#cloud-config
+write_files:
+  - path: /etc/files.zip
+    encoding: b64
+    content: ${template_zip_b64}
+
+
+runcmd:
+  - apt-get -y install unzip
+  - unzip /etc/files.zip -d /tmp
+  - cp /tmp/allports_listend.py /usr/local/sbin
+  - bash /tmp/prep.sh
+  - bash /tmp/packages.sh
+  - bash /tmp/role.sh
