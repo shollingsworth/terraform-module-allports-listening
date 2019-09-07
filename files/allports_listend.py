@@ -27,26 +27,41 @@ DOC = """
 <p>Open Port: <b>{dest_port}</b></p>
 <pre>
 from : {client_ip}:{client_port}
-to   : {dest_ip}:{dest_port}
 agent: {agent}
 </pre>
 </body>
 </html>
 """.strip()
 
+def _getprivip():
+    cmd = [
+        'ip',
+        '-o',
+        '-f',
+        'inet',
+        'addr',
+        'show',
+    ]
+    output = subprocess.check_output(cmd).strip().split('\n')
+    for _ in output:
+        if ' lo ' in _:
+            continue
+        return _.split()[3].split('/')[0]
+
 FORWARD_IF = 'eth0'
-LISTEN_IP = '127.0.0.1'
 START_PORT = 10000
+PRIV_IP = _getprivip()
 
 
 def get_server_config(listener_number):
     """Get arguments for each server thread."""
     for i in range(int(listener_number)):
-        yield LISTEN_IP, START_PORT + i
+        yield PRIV_IP, START_PORT + i
 
 
 def run_setup_commands(listener_number):
     """Run iptables / networking setup comands."""
+
     div = int(65535 / int(listener_number))
     # Split the ports up, exclude ssh, divide evenly otherwise
     sections = []
@@ -94,7 +109,7 @@ def run_setup_commands(listener_number):
             '-p', 'tcp',
             '--dport', f'{start_port}:{end_port}',
             '-j', 'DNAT',
-            '--to', f'{LISTEN_IP}:{dest_port}',
+            '--to', f'{PRIV_IP}:{dest_port}',
         ])
     for i in cmds:
         cmd = ' '.join(i)
@@ -110,19 +125,23 @@ class PortsResponse(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         client_ip, client_port = self.client_address
-        dest_ip, dest_port = self.headers['Host'].split(':')
+
+        _ = self.headers['Host'].split(':')
+        if len(_) == 1:
+            dest_ip, dest_port = _, 80
+        else:
+            dest_ip, dest_port = _
+
         dest_ip, dest_port = html.escape(str(dest_ip)), html.escape(str(dest_port))
         LOG.info(
-            'client:%s:%s -> srv:%s:%s',
+            'client:%s:%s -> srv_port:%s',
             client_ip,
             client_port,
-            dest_ip,
             dest_port,
         )
         self.wfile.write(DOC.format(**{
             'client_ip': html.escape(client_ip),
             'client_port': html.escape(str(client_port)),
-            'dest_ip': dest_ip,
             'dest_port': dest_port,
             'agent': html.escape(self.headers['User-Agent']),
         }).encode())
