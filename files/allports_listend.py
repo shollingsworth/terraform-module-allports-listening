@@ -28,6 +28,7 @@ DOC = """
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
+data : {data}
 </pre>
 </body>
 </html>
@@ -134,10 +135,11 @@ class PortsResponse(http.server.BaseHTTPRequestHandler):
 
         dest_ip, dest_port = html.escape(str(dest_ip)), html.escape(str(dest_port))
         LOG.info(
-            'client:%s:%s -> srv_port:%s',
+            'client:%s:%s -> srv_port:%s headers:%s',
             client_ip,
             client_port,
             dest_port,
+            self.headers,
         )
         self.wfile.write(DOC.format(**{
             'client_ip': html.escape(client_ip),
