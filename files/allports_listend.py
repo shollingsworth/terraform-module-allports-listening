@@ -8,6 +8,17 @@ import socketserver
 import threading
 import subprocess
 import argparse
+import logging
+from systemd.journal import JournaldLogHandler
+
+LOG = logging.getLogger('allports-listening')
+HANDLER = JournaldLogHandler()
+HANDLER.setFormatter(logging.Formatter(
+    '[%(levelname)s] %(message)s'
+))
+LOG.addHandler(HANDLER)
+LOG.setLevel(logging.INFO)
+
 
 DOC = """
 <!DOCTYPE html>
@@ -100,13 +111,19 @@ class PortsResponse(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         client_ip, client_port = self.client_address
         dest_ip, dest_port = self.headers['Host'].split(':')
-
-
+        dest_ip, dest_port = html.escape(str(dest_ip)), html.escape(str(dest_port))
+        LOG.info(
+            'client:%s:%s -> srv:%s:%s',
+            client_ip,
+            client_port,
+            dest_ip,
+            dest_port,
+        )
         self.wfile.write(DOC.format(**{
             'client_ip': html.escape(client_ip),
             'client_port': html.escape(str(client_port)),
-            'dest_ip': html.escape(dest_ip),
-            'dest_port': html.escape(str(dest_port)),
+            'dest_ip': dest_ip,
+            'dest_port': dest_port,
             'agent': html.escape(self.headers['User-Agent']),
         }).encode())
 
