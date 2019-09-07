@@ -3,6 +3,7 @@
 """Daemon that runs allports shown."""
 import json  # pylint: disable=unused-import
 import http.server
+import html
 import socketserver
 import threading
 import subprocess
@@ -100,12 +101,13 @@ class PortsResponse(http.server.BaseHTTPRequestHandler):
         client_ip, client_port = self.client_address
         dest_ip, dest_port = self.headers['Host'].split(':')
 
+
         self.wfile.write(DOC.format(**{
-            'client_ip': client_ip,
-            'client_port': client_port,
-            'dest_ip': dest_ip,
-            'dest_port': dest_port,
-            'agent': self.headers['User-Agent'],
+            'client_ip': html.escape(client_ip),
+            'client_port': html.escape(str(client_port)),
+            'dest_ip': html.escape(dest_ip),
+            'dest_port': html.escape(str(dest_port)),
+            'agent': html.escape(self.headers['User-Agent']),
         }).encode())
 
 
