@@ -8,7 +8,6 @@ data "template_file" "cloud-init" {
 
   vars {
     template_zip_b64 = "${base64encode(file(local.zipfile))}"
-    thread_count     = "${var.thread_count}"
   }
 
   depends_on = [
