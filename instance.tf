@@ -70,6 +70,10 @@ resource "aws_instance" "allports-host" {
 
   lifecycle {
     create_before_destroy = true
+
+    ignore_changes = [
+      "user_data",
+    ]
   }
 }
 
