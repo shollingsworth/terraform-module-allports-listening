@@ -67,12 +67,6 @@ resource "aws_instance" "allports-host" {
   depends_on = [
     "aws_security_group.allports-exposed",
   ]
-
-  lifecycle {
-    ignore_changes = [
-      "userdata",
-    ]
-  }
 }
 
 output "ip-private" {
