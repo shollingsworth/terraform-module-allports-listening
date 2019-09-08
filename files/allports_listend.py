@@ -9,14 +9,17 @@ import threading
 import subprocess
 import argparse
 import logging
+import sys
 from systemd.journal import JournaldLogHandler
 
 LOG = logging.getLogger('allports-listening')
-HANDLER = JournaldLogHandler()
-HANDLER.setFormatter(logging.Formatter(
+JD_HANDLER = JournaldLogHandler()
+JD_HANDLER.setFormatter(logging.Formatter(
     '[%(levelname)s] %(message)s'
 ))
-LOG.addHandler(HANDLER)
+STDOUT_HANDLER = logging.StreamHandler(sys.stdout)
+LOG.addHandler(JD_HANDLER)
+LOG.addHandler(STDOUT_HANDLER)
 LOG.setLevel(logging.INFO)
 
 
@@ -28,7 +31,6 @@ DOC = """
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
-data : {data}
 </pre>
 </body>
 </html>
@@ -43,7 +45,7 @@ def _getprivip():
         'addr',
         'show',
     ]
-    output = subprocess.check_output(cmd).strip().split('\n')
+    output = subprocess.check_output(cmd).decode('utf-8').strip().split('\n')
     for _ in output:
         if ' lo ' in _:
             continue
@@ -121,32 +123,57 @@ def run_setup_commands(listener_number):
 
 class PortsResponse(http.server.BaseHTTPRequestHandler):
     """Customer request handler for ports request."""
-    def do_GET(self):   # pylint: disable=invalid-name
-        """handle get request."""
-        self.send_response(200)
-        self.end_headers()
+    def _log_data(self, data=None):
+        """Log Data from POST/GET request."""
         client_ip, client_port = self.client_address
+        rline = self.requestline
+        try:
+            _ = self.headers['Host'].split(':')
+        except AttributeError as i:
+            LOG.exception('Unknown host: %s', i)
+            raise
 
-        _ = self.headers['Host'].split(':')
         if len(_) == 1:
             dest_ip, dest_port = _, 80
         else:
             dest_ip, dest_port = _
 
+        uid = f'client:{client_ip}:{client_port} -> srv_port:{dest_port}'
         dest_ip, dest_port = html.escape(str(dest_ip)), html.escape(str(dest_port))
         LOG.info(
-            'client:%s:%s -> srv_port:%s headers:%s',
-            client_ip,
-            client_port,
-            dest_port,
-            self.headers,
+            '%s / %s',
+            uid,
+            rline,
         )
+        for i in self.headers.keys():
+            LOG.info('%s / header:%s: %s', uid, i, self.headers[i])
+
+        if data:
+            LOG.info('%s / payload: %s', uid, data)
+
+        # respond
         self.wfile.write(DOC.format(**{
             'client_ip': html.escape(client_ip),
             'client_port': html.escape(str(client_port)),
             'dest_port': dest_port,
             'agent': html.escape(self.headers['User-Agent']),
         }).encode())
+
+
+    def do_POST(self):   # pylint: disable=invalid-name
+        """Process post request."""
+        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+        post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        self.send_response(200)
+        self.end_headers()
+        self._log_data(post_data)
+
+
+    def do_GET(self):   # pylint: disable=invalid-name
+        """handle get request."""
+        self.send_response(200)
+        self.end_headers()
+        self._log_data()
 
 
 def server(address, port):
