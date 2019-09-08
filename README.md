@@ -2,7 +2,7 @@
 
 ```
 module "allports-host" {
-  source    = ""
+  source          = "git::https://github.com/shollingsworth/terraform-module-allports-listening.git?ref=master"
   description = "Server responds on all ports (except 22)"
   instance_type = "t2.small"
   name = "all-ports-listening-server"

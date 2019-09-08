@@ -13,6 +13,24 @@ from systemd.journal import JournaldLogHandler
 DEBUG = False
 FAPP = Flask(__name__)
 
+ABOUT = """
+<!DOCTYPE html>
+<html>
+<head>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</head>
+<body>
+<p>public site: <a href="http://openports.co">openports.co</a></p>
+
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/fork" data-size="large" data-show-count="true" aria-label="Fork shollingsworth/terraform-module-allports-listening on GitHub">Fork</a>
+
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/archive/master.zip" data-size="large" aria-label="Download shollingsworth/terraform-module-allports-listening on GitHub">Download</a>
+
+<a class="github-button" href="https://github.com/shollingsworth" data-size="large" data-show-count="true" aria-label="Follow @shollingsworth on GitHub">Follow @shollingsworth</a>
+</body>
+</html>
+""".strip()
+
 DOC = """
 <!DOCTYPE html>
 <html>
@@ -21,6 +39,8 @@ DOC = """
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
+<hr>
+<a href="/about">About</a>
 </pre>
 </body>
 </html>
@@ -46,6 +66,21 @@ START_PORT = 10000
 PRIV_IP = _getprivip()
 
 
+@FAPP.route('/about')
+def about():  # pylint: disable=unused-argument
+    """Static about doc."""
+    client_ip, _ = (
+        request.remote_addr,
+        request.environ.get('REMOTE_PORT'),
+    )
+    rline = request.full_path
+    LOG.info(
+        'About visit: %s / %s',
+        client_ip,
+        rline,
+    )
+    return ABOUT
+
 
 @FAPP.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
 @FAPP.route('/<path:path>')
@@ -65,6 +100,7 @@ def catch_all(path):  # pylint: disable=unused-argument
     if len(_) == 1:
         dest_ip, dest_port = _, 80
     else:
+
         dest_ip, dest_port = _
 
     uid = (
