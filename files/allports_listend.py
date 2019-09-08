@@ -58,7 +58,14 @@ DOC = """
 </script>
 </head>
 <body>
-<h2>Open Port: <b>{dest_port}</b></h2>
+<h2>
+    {previous_url_x}
+    {previous_url}
+    Open Port:
+    <b>{dest_port}</b>
+    {next_url}
+    {next_url_x}
+</h2>
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
@@ -111,7 +118,7 @@ def about():  # pylint: disable=unused-argument
 
 @FAPP.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
 @FAPP.route('/<path:path>')
-def catch_all(path):  # pylint: disable=unused-argument
+def catch_all(path):  # pylint: disable=unused-argument,too-many-locals
     """Catches all paths."""
     client_ip, client_port = (
         request.headers['X-Real-Ip'],
@@ -124,7 +131,7 @@ def catch_all(path):  # pylint: disable=unused-argument
     # Grab remote connection info
     _ = request.headers['X-SRV-HOST'].split(':')
     if len(_) == 1:
-        _ = (_, 80)
+        _ = (_[0], 80)
     dest_ip, dest_port = _
 
     uid = (
@@ -168,8 +175,47 @@ def catch_all(path):  # pylint: disable=unused-argument
         LOG.error('Unknown Agent: %s', _)
         uagent = 'UKNOWN'
 
+    previous_port = int(dest_port) - 1
+    previous_port_x = int(dest_port) - 10
+
+    previous_url = '' if int(dest_port) == 1 else 'http://{0}:{1}'.format(
+        dest_ip,
+        previous_port,
+    )
+
+    previous_url_x = '' if (int(dest_port) - 10) <= 1 else 'http://{0}:{1}'.format(
+        dest_ip,
+        previous_port_x,
+    )
+
+    next_port = int(dest_port) + 1
+    next_port_x = int(dest_port) + 10
+
+    next_url_x = '' if (int(dest_port) + 10) >= 65535 else 'http://{0}:{1}'.format(
+        dest_ip,
+        next_port_x,
+    )
+
+    next_url = '' if int(dest_port) >= 65535 else 'http://{0}:{1}'.format(
+        dest_ip,
+        next_port,
+    )
+
+    next_url_x = '<a href="{0}">&nbsp;&nbsp;&gt;&gt;</a>'.format(next_url_x) \
+        if next_url_x else ''
+
+    previous_url_x = '<a href="{0}">&nbsp;&nbsp;&lt;&lt;</a>'.format(previous_url_x) \
+        if previous_url_x else ''
+
+    next_url = '<a href="{0}">&gt;</a>'.format(next_url) if next_url else ''
+    previous_url = '<a href="{0}">&lt;</a>'.format(previous_url) if previous_url else ''
+
     # respond
     return DOC.format(**{
+        'previous_url_x': previous_url_x,
+        'next_url_x': next_url_x,
+        'previous_url': previous_url,
+        'next_url': next_url,
         'client_ip': html.escape(client_ip),
         'client_port': html.escape(str(client_port)),
         'dest_port': dest_port,
