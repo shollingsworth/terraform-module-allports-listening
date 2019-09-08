@@ -17,16 +17,29 @@ ABOUT = """
 <!DOCTYPE html>
 <html>
 <head>
+<title>openports.co - About</title>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({{
+    google_ad_client: "ca-pub-4487810698769604",
+    enable_page_level_ads: true
+  }});
+</script>
 </head>
 <body>
 <p>public site: <a href="http://openports.co">openports.co</a></p>
 
-<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/fork" data-size="large" data-show-count="true" aria-label="Fork shollingsworth/terraform-module-allports-listening on GitHub">Fork</a>
-
-<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/archive/master.zip" data-size="large" aria-label="Download shollingsworth/terraform-module-allports-listening on GitHub">Download</a>
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star shollingsworth/terraform-module-allports-listening on GitHub">Star</a>
 
 <a class="github-button" href="https://github.com/shollingsworth" data-size="large" data-show-count="true" aria-label="Follow @shollingsworth on GitHub">Follow @shollingsworth</a>
+
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/issues" data-icon="octicon-issue-opened" data-size="large" data-show-count="true" aria-label="Issue shollingsworth/terraform-module-allports-listening on GitHub">Issue</a>
+
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/archive/master.zip" data-icon="octicon-cloud-download" data-size="large" aria-label="Download shollingsworth/terraform-module-allports-listening on GitHub">Download</a>
+
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/subscription" data-icon="octicon-eye" data-size="large" data-show-count="true" aria-label="Watch shollingsworth/terraform-module-allports-listening on GitHub">Watch</a>
+
 </body>
 </html>
 """.strip()
@@ -34,13 +47,24 @@ ABOUT = """
 DOC = """
 <!DOCTYPE html>
 <html>
+<head>
+<title>openports.co - Open Port:{dest_port}</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({{
+    google_ad_client: "ca-pub-4487810698769604",
+    enable_page_level_ads: true
+  }});
+</script>
+</head>
 <body>
 <p>Open Port: <b>{dest_port}</b></p>
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
 <hr>
-<a href="/about">About</a>
+<p>This site allows us to test for egress connectivity from one site to another to detect blocked ports</p>
+<a href="/about">More Information</a>
 </pre>
 </body>
 </html>

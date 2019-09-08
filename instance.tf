@@ -67,6 +67,10 @@ resource "aws_instance" "allports-host" {
   depends_on = [
     "aws_security_group.allports-exposed",
   ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 output "ip-private" {
