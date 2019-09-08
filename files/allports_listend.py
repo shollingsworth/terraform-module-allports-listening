@@ -28,7 +28,7 @@ ABOUT = """
 </script>
 </head>
 <body>
-<p>public site: <a href="http://openports.co">openports.co</a></p>
+<h2>public site: <a href="http://openports.co">openports.co</a></h2>
 
 <a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star shollingsworth/terraform-module-allports-listening on GitHub">Star</a>
 
@@ -48,7 +48,7 @@ DOC = """
 <!DOCTYPE html>
 <html>
 <head>
-<title>openports.co - Open Port:{dest_port}</title>
+<title>Network Diagnostic - openports.co - Open Port:{dest_port}</title>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <script>
   (adsbygoogle = window.adsbygoogle || []).push({{
@@ -58,13 +58,15 @@ DOC = """
 </script>
 </head>
 <body>
-<p>Open Port: <b>{dest_port}</b></p>
+<h2>Open Port: <b>{dest_port}</b></h2>
 <pre>
 from : {client_ip}:{client_port}
 agent: {agent}
 <hr>
-<p>This site allows us to test for egress connectivity from one site to another to detect blocked ports</p>
-<a href="/about">More Information</a>
+<b>This is a network diagnostic tool</b><br><br>
+perform web requests, or use curl to verify if a port is open from internal to external.<br>
+<b>example:</b><code> curl openports.co:8080 <code/>
+<h3><a href="/about">More Information</a></h3>
 </pre>
 </body>
 </html>
