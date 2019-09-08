@@ -88,7 +88,8 @@ def _getprivip():
         return _.split()[3].split('/')[0]
 
 FORWARD_IF = 'eth0'
-START_PORT = 10000
+NGINX_PORT = 9999
+FLASK_PORT = 10000
 PRIV_IP = _getprivip()
 
 
@@ -96,7 +97,7 @@ PRIV_IP = _getprivip()
 def about():  # pylint: disable=unused-argument
     """Static about doc."""
     client_ip, _ = (
-        request.remote_addr,
+        request.headers['X-Real-Ip'],
         request.environ.get('REMOTE_PORT'),
     )
     rline = request.full_path
@@ -113,21 +114,18 @@ def about():  # pylint: disable=unused-argument
 def catch_all(path):  # pylint: disable=unused-argument
     """Catches all paths."""
     client_ip, client_port = (
-        request.remote_addr,
-        request.environ.get('REMOTE_PORT'),
+        request.headers['X-Real-Ip'],
+        request.headers['X-Real-PORT'],
     )
+
     rline = request.full_path
-    try:
-        _ = request.headers['Host'].split(':')
-    except AttributeError as i:
-        LOG.exception('Unknown host: %s', i)
-        return ''
 
+
+    # Grab remote connection info
+    _ = request.headers['X-SRV-HOST'].split(':')
     if len(_) == 1:
-        dest_ip, dest_port = _, 80
-    else:
-
-        dest_ip, dest_port = _
+        _ = (_, 80)
+    dest_ip, dest_port = _
 
     uid = (
         f'client:{client_ip}:{client_port}'
@@ -164,12 +162,18 @@ def catch_all(path):  # pylint: disable=unused-argument
             request.form,
         )
 
+    try:
+        uagent = request.headers['User-Agent']
+    except KeyError as _:
+        LOG.error('Unknown Agent: %s', _)
+        uagent = 'UKNOWN'
+
     # respond
     return DOC.format(**{
         'client_ip': html.escape(client_ip),
         'client_port': html.escape(str(client_port)),
         'dest_port': dest_port,
-        'agent': html.escape(request.headers['User-Agent']),
+        'agent': html.escape(uagent),
     }).encode()
 
 
@@ -220,7 +224,7 @@ def run_setup_commands():
             '-p', 'tcp',
             '--dport', f'{start_port}:{end_port}',
             '-j', 'DNAT',
-            '--to', f'{PRIV_IP}:{START_PORT}',
+            '--to', f'{PRIV_IP}:{NGINX_PORT}',
         ])
     for i in cmds:
         cmd = ' '.join(i)
@@ -230,7 +234,7 @@ def run_setup_commands():
 def main():
     """Run main function."""
     run_setup_commands()
-    FAPP.run(host=PRIV_IP, port=START_PORT, debug=DEBUG)
+    FAPP.run(host='127.0.0.1', port=FLASK_PORT, debug=DEBUG)
 
 
 if __name__ == '__main__':
