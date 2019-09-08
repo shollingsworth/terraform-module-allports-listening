@@ -44,6 +44,16 @@ ABOUT = """
 </html>
 """.strip()
 
+# Double escape json
+CLI_DOC = """
+{{
+    "client_ip":"{client_ip}",
+    "port": "{dest_port}",
+    "agent": "{agent}",
+    "status": "OPEN"
+}}
+""".lstrip()
+
 DOC = """
 <!DOCTYPE html>
 <html>
@@ -173,7 +183,9 @@ def catch_all(path):  # pylint: disable=unused-argument,too-many-locals
         uagent = request.headers['User-Agent']
     except KeyError as _:
         LOG.error('Unknown Agent: %s', _)
-        uagent = 'UKNOWN'
+        uagent = 'UNKNOWN'
+
+    uagent = html.escape(uagent)
 
     previous_port = int(dest_port) - 1
     previous_port_x = int(dest_port) - 10
@@ -210,8 +222,17 @@ def catch_all(path):  # pylint: disable=unused-argument,too-many-locals
     next_url = '<a href="{0}">&gt;</a>'.format(next_url) if next_url else ''
     previous_url = '<a href="{0}">&lt;</a>'.format(previous_url) if previous_url else ''
 
+    match_cli = any([
+        'curl' in uagent.lower(),
+        'python' in uagent.lower(),
+        'wget' in uagent.lower(),
+        'unknown' in uagent.lower(),
+    ])
+
+    CLIENT_RESPONSE = CLI_DOC if match_cli else DOC  # pylint: disable=invalid-name
+
     # respond
-    return DOC.format(**{
+    return CLIENT_RESPONSE.format(**{
         'previous_url_x': previous_url_x,
         'next_url_x': next_url_x,
         'previous_url': previous_url,
@@ -219,7 +240,7 @@ def catch_all(path):  # pylint: disable=unused-argument,too-many-locals
         'client_ip': html.escape(client_ip),
         'client_port': html.escape(str(client_port)),
         'dest_port': dest_port,
-        'agent': html.escape(uagent),
+        'agent': uagent,
     }).encode()
 
 
