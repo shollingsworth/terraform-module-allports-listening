@@ -2,8 +2,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-THREAD_COUNT="20"
-
 echo ALLPORTS-LISTENING > /etc/hostname
 hostname -F /etc/hostname
 
@@ -34,9 +32,12 @@ Description=Start Allports Listener Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/sbin/allports_listend.py ${THREAD_COUNT}
+ExecStart=/usr/local/sbin/allports_listend.py -l systemd
 User=allports
 Group=allports
+Type=simple
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
