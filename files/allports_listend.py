@@ -34,11 +34,11 @@ ABOUT = """
 
 <a class="github-button" href="https://github.com/shollingsworth" data-size="large" data-show-count="true" aria-label="Follow @shollingsworth on GitHub">Follow @shollingsworth</a>
 
+<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/subscription" data-icon="octicon-eye" data-size="large" data-show-count="true" aria-label="Watch shollingsworth/terraform-module-allports-listening on GitHub">Watch</a>
+
 <a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/issues" data-icon="octicon-issue-opened" data-size="large" data-show-count="true" aria-label="Issue shollingsworth/terraform-module-allports-listening on GitHub">Issue</a>
 
 <a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/archive/master.zip" data-icon="octicon-cloud-download" data-size="large" aria-label="Download shollingsworth/terraform-module-allports-listening on GitHub">Download</a>
-
-<a class="github-button" href="https://github.com/shollingsworth/terraform-module-allports-listening/subscription" data-icon="octicon-eye" data-size="large" data-show-count="true" aria-label="Watch shollingsworth/terraform-module-allports-listening on GitHub">Watch</a>
 
 </body>
 </html>
