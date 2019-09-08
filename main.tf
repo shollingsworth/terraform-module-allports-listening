@@ -1,8 +1,3 @@
-provider "aws" {
-  profile = "${var.profile}"
-  region  = "${var.region}"
-}
-
 data "aws_ami" "ubuntu" {
   # Canonical/Ubuntu
   owners      = ["099720109477"]
