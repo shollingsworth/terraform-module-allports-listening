@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Daemon that runs allports shown."""
@@ -19,13 +20,6 @@ ABOUT = """
 <head>
 <title>openports.co - About</title>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({{
-    google_ad_client: "ca-pub-4487810698769604",
-    enable_page_level_ads: true
-  }});
-</script>
 </head>
 <body>
 <h2>public site: <a href="http://openports.co">openports.co</a></h2>
@@ -49,6 +43,8 @@ CLI_DOC = """
 {{
     "client_ip":"{client_ip}",
     "port": "{dest_port}",
+    "port_name": "{port_name}",
+    "port_desc": "{port_desc}",
     "agent": "{agent}",
     "status": "OPEN"
 }}
@@ -59,13 +55,6 @@ DOC = """
 <html>
 <head>
 <title>Network Diagnostic - openports.co - Open Port:{dest_port}</title>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({{
-    google_ad_client: "ca-pub-4487810698769604",
-    enable_page_level_ads: true
-  }});
-</script>
 </head>
 <body>
 <h2>
@@ -77,8 +66,9 @@ DOC = """
     {next_url_x}
 </h2>
 <pre>
-from : {client_ip}:{client_port}
-agent: {agent}
+port info : {port_name} / {port_desc}
+from      : {client_ip}:{client_port}
+agent     : {agent}
 <hr>
 <b>This is a network diagnostic tool</b><br><br>
 perform web requests, or use curl to verify if a port is open from internal to external.<br>
@@ -104,10 +94,28 @@ def _getprivip():
             continue
         return _.split()[3].split('/')[0]
 
+def _getport_dict():
+    data = [
+        i.split()
+        for i in open('/etc/services', 'r').read().split('\n')
+        if not i.startswith('#')
+        and i
+    ]
+
+    port_dict = {}
+    for i in data:
+        name, port, *_ = i
+        desc = ' '.join(_)
+        port_num, proto = port.split('/')
+        desc = desc.lstrip('#').strip()
+        port_dict[f'{proto}/{port_num}'] = [name, desc]
+    return port_dict
+
 FORWARD_IF = 'eth0'
 NGINX_PORT = 9999
 FLASK_PORT = 10000
 PRIV_IP = _getprivip()
+PORT_DICT = _getport_dict()
 
 
 @FAPP.route('/about')
@@ -230,9 +238,13 @@ def catch_all(path):  # pylint: disable=unused-argument,too-many-locals
     ])
 
     CLIENT_RESPONSE = CLI_DOC if match_cli else DOC  # pylint: disable=invalid-name
+    port_name, port_desc = PORT_DICT.get(f'tcp/{dest_port}', ['unknown', 'unknown'])
+    port_desc = '-' if not port_desc else port_desc
 
     # respond
     return CLIENT_RESPONSE.format(**{
+        'port_name': port_name,
+        'port_desc': port_desc,
         'previous_url_x': previous_url_x,
         'next_url_x': next_url_x,
         'previous_url': previous_url,
